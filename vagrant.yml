@@ -1,0 +1,43 @@
+---
+
+- name: Create an application virtual machine via vagrant
+  hosts: all
+  sudo: yes
+  sudo_user: root
+  remote_user: vagrant
+  vars:
+    - setup_git_repo: yes
+    - update_apt_cache: yes
+    - timezone: Asia/Taipei
+    - ntp_timezone: Asia/Taipei
+
+  roles:
+    - base
+    - redis
+    - yatesr.timezone
+    - geerlingguy.ntp
+
+- name: Create db server
+  hosts: dbservers
+  sudo: yes
+  sudo_user: root
+  remote_user: vagrant
+  vars:
+    - setup_git_repo: yes
+    - update_apt_cache: yes
+    - timezone: Asia/Taipei
+    - ntp_timezone: Asia/Taipei
+
+  roles:
+    - base
+    - ANXS.postgresql
+    - yatesr.timezone
+    - geerlingguy.ntp
+
+  tasks:
+  - name: Allow postgresql in UFW
+    ufw: rule=allow port=5432 proto=tcp
+
+  vars_files:
+    - vars/postgresql.yml
+

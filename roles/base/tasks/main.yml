@@ -1,0 +1,35 @@
+---
+
+- name: Ensure bash, OpenSSL, and libssl are the latest versions
+  apt: name={{ item }} update_cache={{ update_apt_cache }} state=latest
+  with_items:
+    - bash
+    - openssl
+    - libssl-dev
+  tags: packages
+
+- name: Install base packages
+  apt: name={{ item }} update_cache={{ update_apt_cache }} force=yes state=installed
+  with_items:
+    - build-essential
+    - acl
+    - ntp
+    - htop
+    - git
+    - libpq-dev
+    - python-dev
+    - python-pip
+  tags: packages
+
+- name: Install security packages
+  apt: name={{ item }} update_cache={{ update_apt_cache }} force=yes state=installed
+  with_items:
+    - ufw
+    - fail2ban
+  tags: packages security
+
+- include: ufw.yml
+  tags: security
+
+- name: Setup Locale
+  locale_gen: name=en_US.UTF-8
