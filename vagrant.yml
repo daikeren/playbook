@@ -1,22 +1,5 @@
 ---
 
-- name: Create an application virtual machine via vagrant
-  hosts: all
-  sudo: yes
-  sudo_user: root
-  remote_user: vagrant
-  vars:
-    - setup_git_repo: yes
-    - update_apt_cache: yes
-    - timezone: Asia/Taipei
-    - ntp_timezone: Asia/Taipei
-
-  roles:
-    - base
-    - redis
-    - yatesr.timezone
-    - geerlingguy.ntp
-
 - name: Create db server
   hosts: dbservers
   sudo: yes
@@ -40,4 +23,38 @@
 
   vars_files:
     - vars/postgresql.yml
+
+- name: Create es server
+  hosts: esservers
+  sudo: yes
+  sudo_user: root
+  remote_user: vagrant
+  vars:
+    - setup_git_repo: yes
+    - update_apt_cache: yes
+    - timezone: Asia/Taipei
+    - ntp_timezone: Asia/Taipei
+
+  roles:
+    - base
+    - yatesr.timezone
+    - geerlingguy.ntp
+    - { role: elasticsearch, es_instance_name: "node1",
+    es_config: {
+      http.port: 9200,
+      transport.tcp.port: 9300,
+      node.data: true,
+      node.master: true,
+      network.host: 192.168.33.10,
+      bootstrap.mlockall: false,
+      cluster.name: "test-cluster",
+      discovery.zen.ping.multicast.enabled: false }
+    }
+
+  tasks:
+  - name: Allow ElasticSearch in UFW
+    ufw: rule=allow port=9200 proto=tcp
+
+  vars_files:
+    - vars/elasticsearch.yml
 
